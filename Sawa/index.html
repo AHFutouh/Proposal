@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سَــوا — تطبيق ترجمة لغة الإشارة الفورية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep: #102B44;
+    --deep-2: #0B1F33;
+    --deep-3: #16385A;
+    --panel: #143252;
+    --gold: #B8965D;
+    --gold-soft: rgba(184,150,93,0.35);
+    --green: #4CD674;
+    --gray: #AEBECE;
+    --gray-dim: rgba(174,190,206,0.62);
+    --line: rgba(174,190,206,0.14);
+    --line-strong: rgba(174,190,206,0.22);
+    --radius-s: 10px;
+    --radius-m: 16px;
+    --radius-l: 26px;
+    --maxw: 1180px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--deep);
+    color:var(--gray);
+    font-family:'Almarai', sans-serif;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{
+    font-family:'Cairo', sans-serif;
+    color:#EAF1F8;
+    line-height:1.35;
+  }
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px;}
+  ::selection{background:var(--gold-soft); color:#fff;}
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible{outline:2px solid var(--green); outline-offset:3px; border-radius:6px;}
+
+  /* ---------- dotted pattern background ---------- */
+  .dotted{
+    background-image: radial-gradient(rgba(174,190,206,0.22) 1.4px, transparent 1.4px);
+    background-size: 26px 26px;
+  }
+
+  /* ---------- NAVBAR ---------- */
+  .navbar{
+    position:fixed;
+    top:0; left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    z-index:100;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition: top .45s cubic-bezier(.22,1,.36,1), width .45s cubic-bezier(.22,1,.36,1),
+                background .4s ease, border-color .4s ease, box-shadow .4s ease, border-radius .4s ease;
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    height:74px; max-width:1180px; margin:0 auto; padding:0 28px;
+    transition:height .4s cubic-bezier(.22,1,.36,1);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(155deg, var(--gold) 0%, #8f7245 100%);
+    display:flex; align-items:center; justify-content:center;
+    flex:none;
+  }
+  .brand-mark svg{width:18px; height:18px;}
+  .brand-name{font-family:'Cairo',sans-serif; font-weight:800; font-size:1.18rem; color:#fff; letter-spacing:.2px;}
+  .nav-links{display:flex; align-items:center; gap:34px;}
+  .nav-links a{font-size:.96rem; color:var(--gray); font-weight:700; transition:color .25s ease; position:relative;}
+  .nav-links a:hover{color:#fff;}
+  .nav-cta{
+    background:var(--green); color:#062012; font-weight:800; font-size:.92rem;
+    padding:11px 22px; border-radius:11px; transition:transform .25s ease, box-shadow .25s ease;
+    box-shadow:0 8px 20px rgba(76,214,116,.18);
+  }
+  .nav-cta:hover{transform:translateY(-2px); box-shadow:0 12px 26px rgba(76,214,116,.3);}
+  .nav-toggle{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;}
+  .nav-toggle span{width:22px; height:2px; background:var(--gray); border-radius:2px;}
+
+  .navbar.scrolled{
+    top:14px;
+    width:min(1120px, calc(100% - 32px));
+    background:rgba(11,31,51,0.82);
+    border-color:var(--line);
+    border-radius:18px;
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    box-shadow:0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02);
+  }
+  .navbar.scrolled .nav-inner{height:62px;}
+
+  .mobile-menu{
+    display:none; position:fixed; inset:0; z-index:99; background:var(--deep-2);
+    padding:110px 28px 40px; flex-direction:column; gap:26px;
+  }
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-family:'Cairo',sans-serif; font-size:1.3rem; font-weight:700; color:#fff;}
+  .mobile-menu .nav-cta{align-self:flex-start; margin-top:12px;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:190px 0 120px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: radial-gradient(rgba(174,190,206,0.16) 1.3px, transparent 1.3px);
+    background-size:24px 24px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 15%, #000 40%, transparent 85%);
+            mask-image: radial-gradient(ellipse 90% 70% at 50% 15%, #000 40%, transparent 85%);
+    pointer-events:none;
+  }
+  .hero-grid{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:1.05fr .95fr; gap:64px; align-items:center;
+  }
+  .eyebrow-line{
+    display:flex; align-items:center; gap:12px; margin-bottom:22px;
+  }
+  .eyebrow-line .dash{width:34px; height:2px; background:var(--gold);}
+  .eyebrow-line span{font-size:.98rem; color:var(--gold); font-weight:700; font-family:'Cairo',sans-serif;}
+  .hero h1{
+    font-size:clamp(2.1rem, 4.2vw, 3.35rem);
+    font-weight:800;
+    letter-spacing:-.5px;
+    margin-bottom:24px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--green);
+  }
+  .hero p.lead{
+    font-size:1.14rem;
+    color:var(--gray-dim);
+    max-width:52ch;
+    margin-bottom:38px;
+  }
+  .hero-actions{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--green); color:#062012; font-weight:800; font-family:'Cairo',sans-serif;
+    padding:16px 30px; border-radius:12px; font-size:1rem; display:inline-block;
+    box-shadow:0 14px 30px rgba(76,214,116,.2); transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .btn-primary:hover{transform:translateY(-3px); box-shadow:0 18px 36px rgba(76,214,116,.32);}
+  .btn-ghost{
+    border:1px solid var(--line-strong); color:#EAF1F8; font-weight:700; font-family:'Cairo',sans-serif;
+    padding:15px 28px; border-radius:12px; font-size:.98rem; transition:border-color .25s ease, background .25s ease;
+  }
+  .btn-ghost:hover{border-color:var(--gold); background:rgba(184,150,93,.08);}
+
+  /* hero illustration */
+  .hero-art{position:relative;}
+  .art-card{
+    background:linear-gradient(165deg, var(--panel), var(--deep-2));
+    border:1px solid var(--line); border-radius:28px; padding:44px;
+    position:relative; overflow:hidden;
+  }
+  .art-card::after{
+    content:""; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(174,190,206,0.1) 1.2px, transparent 1.2px);
+    background-size:20px 20px; opacity:.5;
+  }
+
+  /* ---------- SECTION shared ---------- */
+  section{position:relative; padding:110px 0;}
+  .section-head{max-width:640px; margin-bottom:64px;}
+  .section-head .tag{
+    display:flex; align-items:center; gap:12px; margin-bottom:18px;
+  }
+  .section-head .tag .dash{width:28px; height:2px; background:var(--gold);}
+  .section-head .tag span{font-size:.9rem; color:var(--gold); font-weight:700; font-family:'Cairo',sans-serif;}
+  .section-head h2{font-size:clamp(1.6rem, 2.6vw, 2.35rem); font-weight:800; margin-bottom:16px;}
+  .section-head p{color:var(--gray-dim); font-size:1.04rem; max-width:58ch;}
+  hr.rule{border:none; height:1px; background:var(--line); margin:0;}
+
+  /* ---------- IDEA / OVERVIEW ---------- */
+  .idea{background:var(--deep-2);}
+  .idea-grid{display:grid; grid-template-columns:1fr 1fr; gap:26px;}
+  .idea-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:34px; position:relative;
+  }
+  .idea-card .num{
+    font-family:'Cairo',sans-serif; font-size:.85rem; font-weight:800; color:var(--gold);
+    border:1px solid var(--gold-soft); border-radius:8px; padding:4px 11px; display:inline-block; margin-bottom:20px;
+  }
+  .idea-card h3{font-size:1.24rem; margin-bottom:12px;}
+  .idea-card p{color:var(--gray-dim); font-size:.98rem;}
+  .idea-facts{
+    margin-top:28px; display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line); border-radius:var(--radius-m); overflow:hidden; border:1px solid var(--line);
+  }
+  .idea-fact{background:var(--deep-2); padding:24px 20px;}
+  .idea-fact strong{display:block; font-family:'Cairo',sans-serif; color:#fff; font-size:1.02rem; margin-bottom:6px;}
+  .idea-fact span{font-size:.86rem; color:var(--gray-dim);}
+
+  /* ---------- WORKFLOW ---------- */
+  .flow-row{display:flex; align-items:center; gap:0; margin-bottom:20px;}
+  .flow-row:last-child{margin-bottom:0;}
+  .flow-label{
+    font-family:'Cairo',sans-serif; font-weight:800; color:var(--gold); font-size:.88rem;
+    min-width:150px;
+  }
+  .flow-steps{display:flex; align-items:center; gap:0; flex:1; flex-wrap:wrap;}
+  .flow-step{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-s);
+    padding:18px 20px; display:flex; align-items:center; gap:12px; min-width:150px;
+  }
+  .flow-step svg{width:22px; height:22px; flex:none; color:var(--green);}
+  .flow-step span{font-size:.9rem; color:#EAF1F8; font-weight:700;}
+  .flow-arrow{color:var(--gray-dim); padding:0 14px; font-size:1.1rem; flex:none;}
+  .flow-note{font-size:.84rem; color:var(--gray-dim); margin-top:10px; padding-right:162px;}
+
+  /* ---------- TECH SIMPLE ---------- */
+  .tech-simple{background:var(--deep-2);}
+  .tech-simple-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .tech-simple-card{
+    border:1px solid var(--line); border-radius:var(--radius-m); padding:30px; background:var(--deep);
+  }
+  .tech-simple-card .icon{
+    width:46px; height:46px; border-radius:12px; background:rgba(184,150,93,.12); border:1px solid var(--gold-soft);
+    display:flex; align-items:center; justify-content:center; margin-bottom:20px;
+  }
+  .tech-simple-card .icon svg{width:22px; height:22px; color:var(--gold);}
+  .tech-simple-card h4{font-size:1.05rem; margin-bottom:10px;}
+  .tech-simple-card p{font-size:.92rem; color:var(--gray-dim);}
+  .difficulty-note{
+    margin-top:40px; border-right:3px solid var(--gold); background:rgba(184,150,93,.06);
+    padding:24px 28px; border-radius:0 var(--radius-s) var(--radius-s) 0;
+  }
+  .difficulty-note p{color:#dfe7ee; font-size:.98rem;}
+
+  /* ---------- ROADMAP TABLE ---------- */
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius-m);}
+  table{width:100%; border-collapse:collapse; min-width:720px;}
+  thead th{
+    text-align:right; font-family:'Cairo',sans-serif; font-size:.86rem; color:var(--gold);
+    font-weight:700; padding:18px 22px; background:var(--panel); border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:20px 22px; font-size:.92rem; border-bottom:1px solid var(--line); vertical-align:top; color:var(--gray);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(odd){background:rgba(255,255,255,0.012);}
+  td.step-name{font-family:'Cairo',sans-serif; color:#EAF1F8; font-weight:700; white-space:nowrap;}
+  td.hours{color:var(--green); font-weight:700; font-family:'Cairo',sans-serif; white-space:nowrap;}
+  tfoot td{
+    padding:20px 22px; font-family:'Cairo',sans-serif; font-weight:800; color:#fff;
+    background:var(--panel); border-top:1px solid var(--gold-soft);
+  }
+  tfoot td.hours{color:var(--gold);}
+
+  /* ---------- COMPARISON ---------- */
+  .compare .table-wrap table{min-width:820px;}
+  .compare thead th:nth-child(2){color:#e08b6b;}
+  .compare thead th:nth-child(3){color:var(--green);}
+  td.cloud{color:#d7a493;}
+  td.ondevice{color:#bfe9cc; font-weight:700;}
+
+  /* ---------- MOCKUP ---------- */
+  .mockup-wrap{display:grid; grid-template-columns:.85fr 1.15fr; gap:60px; align-items:center;}
+  .phone{
+    background:var(--deep-2); border:1px solid var(--line-strong); border-radius:34px; padding:14px;
+    max-width:340px; margin:0 auto; box-shadow:0 30px 70px rgba(0,0,0,.4);
+  }
+  .phone-notch{width:60px; height:6px; background:var(--line-strong); border-radius:6px; margin:0 auto 14px;}
+  .phone-screen{
+    background:var(--deep); border-radius:22px; padding:18px; display:flex; flex-direction:column; gap:14px;
+  }
+  .cam-area{
+    background:linear-gradient(160deg, #0c2338, #16385a); border-radius:16px; height:190px;
+    position:relative; overflow:hidden; border:1px solid var(--line);
+  }
+  .cam-area::before{
+    content:""; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(174,190,206,0.14) 1px, transparent 1px);
+    background-size:16px 16px;
+  }
+  .hand-dot{position:absolute; width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 10px rgba(76,214,116,.7);}
+  .cam-tag{
+    position:absolute; bottom:10px; right:10px; font-size:.68rem; font-family:'Cairo',sans-serif;
+    color:var(--green); background:rgba(6,20,15,.6); padding:4px 10px; border-radius:7px; font-weight:700;
+  }
+  .msg-box{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px;}
+  .msg-box .who{font-size:.7rem; color:var(--gold); font-family:'Cairo',sans-serif; font-weight:700; margin-bottom:8px;}
+  .msg-box p{font-size:.86rem; color:#EAF1F8; margin-bottom:10px;}
+  .mini-btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:.76rem; font-family:'Cairo',sans-serif; font-weight:700;
+    padding:8px 14px; border-radius:9px;
+  }
+  .mini-btn.green{background:rgba(76,214,116,.14); color:var(--green);}
+  .mini-btn.gray{background:rgba(174,190,206,.1); color:var(--gray);}
+  .mockup-copy .list-item{display:flex; gap:14px; margin-bottom:22px;}
+  .list-item .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--gold); margin-top:9px; flex:none;
+  }
+  .list-item p{font-size:.96rem; color:var(--gray-dim);}
+  .list-item strong{color:#EAF1F8; font-family:'Cairo',sans-serif; display:block; margin-bottom:4px;}
+
+  /* ---------- BUDGET ---------- */
+  .budget-band{
+    background:linear-gradient(165deg, var(--panel), var(--deep-2));
+    border:1px solid var(--gold-soft); border-radius:var(--radius-l); padding:56px;
+    display:grid; grid-template-columns:1.1fr .9fr; gap:50px; align-items:center;
+  }
+  .price-figure{font-family:'Cairo',sans-serif; font-weight:900; font-size:3.4rem; color:#fff;}
+  .price-figure span{color:var(--gold); font-size:1.6rem; font-weight:800; margin-inline-start:8px;}
+  .budget-band .team-note{color:var(--gray-dim); font-size:.98rem; margin-top:18px; max-width:44ch;}
+  .budget-side{border-right:1px solid var(--line); padding-right:44px;}
+  .budget-side .row{display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line); font-size:.92rem;}
+  .budget-side .row:last-child{border-bottom:none;}
+  .budget-side .row span:first-child{color:var(--gray-dim);}
+  .budget-side .row span:last-child{color:#EAF1F8; font-family:'Cairo',sans-serif; font-weight:700;}
+
+  /* ---------- PAYMENT PLAN ---------- */
+  .plan-flow{display:flex; flex-direction:column; gap:0; margin-bottom:56px;}
+  .plan-item{
+    display:flex; align-items:center; gap:24px; background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius-m); padding:24px 28px; position:relative;
+  }
+  .plan-item + .plan-item{margin-top:26px;}
+  .plan-item + .plan-item::before{
+    content:""; position:absolute; top:-26px; right:44px; width:1px; height:26px; background:var(--line-strong);
+  }
+  .plan-pct{
+    font-family:'Cairo',sans-serif; font-weight:900; font-size:1.7rem; color:var(--green); min-width:78px; text-align:center;
+  }
+  .plan-item p{font-size:.92rem; color:var(--gray-dim); margin:0;}
+  .plan-item strong{color:#EAF1F8; font-family:'Cairo',sans-serif; display:block; margin-bottom:4px; font-size:1.02rem;}
+
+  /* ---------- GUARANTEES ---------- */
+  .guarantees{background:var(--deep-2);}
+  .guar-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:22px;}
+  .guar-card{
+    background:var(--deep); border:1px solid var(--line); border-radius:var(--radius-m); padding:30px;
+    display:flex; gap:18px;
+  }
+  .guar-card .icon{
+    width:44px; height:44px; border-radius:11px; background:rgba(76,214,116,.1); border:1px solid rgba(76,214,116,.3);
+    display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .guar-card .icon svg{width:20px; height:20px; color:var(--green);}
+  .guar-card h4{font-size:1.02rem; margin-bottom:8px;}
+  .guar-card p{font-size:.9rem; color:var(--gray-dim);}
+
+  /* ---------- FINAL CTA ---------- */
+  .final-cta{
+    background:linear-gradient(165deg, var(--panel), var(--deep));
+    border:1px solid var(--gold-soft); border-radius:var(--radius-l); padding:70px 56px; text-align:center;
+    position:relative; overflow:hidden;
+  }
+  .final-cta::before{
+    content:""; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(174,190,206,0.12) 1.3px, transparent 1.3px);
+    background-size:24px 24px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 30%, transparent 80%);
+            mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 30%, transparent 80%);
+  }
+  .final-cta h2{font-size:clamp(1.6rem,3vw,2.3rem); max-width:22ch; margin:0 auto 18px; position:relative;}
+  .final-cta p{color:var(--gray-dim); max-width:52ch; margin:0 auto 34px; position:relative;}
+  .final-cta p em{
+    font-style:normal;
+    color:var(--green);
+  }
+  .final-cta .hero-actions{justify-content:center; position:relative;}
+
+  footer{padding:44px 0; border-top:1px solid var(--line);}
+  .footer-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
+  .footer-row span{font-size:.86rem; color:var(--gray-dim);}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:980px){
+    .nav-links{display:none;}
+    .nav-toggle{display:flex;}
+    .hero-grid{grid-template-columns:1fr; gap:50px;}
+    .hero{padding:150px 0 80px;}
+    .idea-grid{grid-template-columns:1fr;}
+    .idea-facts{grid-template-columns:repeat(2,1fr);}
+    .tech-simple-grid{grid-template-columns:1fr;}
+    .mockup-wrap{grid-template-columns:1fr;}
+    .budget-band{grid-template-columns:1fr; padding:36px;}
+    .budget-side{border-right:none; padding-right:0; border-top:1px solid var(--line); padding-top:28px;}
+    .guar-grid{grid-template-columns:1fr;}
+    .flow-row{flex-direction:column; align-items:flex-start; gap:14px;}
+    .flow-note{padding-right:0;}
+    .final-cta{padding:50px 26px;}
+  }
+  @media (max-width:600px){
+    section{padding:76px 0;}
+    .hero{padding:130px 0 60px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header id="navbar" class="navbar">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 12c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#0B1F33" stroke-width="1.8" stroke-linecap="round"/><path d="M9 18v-3M12 18v-5M15 18v-3" stroke="#0B1F33" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <span class="brand-name">سَــوا</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#idea">الفكرة</a>
+      <a href="#roadmap">خطة العمل</a>
+      <a href="#compare">مقارنة الأداء</a>
+      <a href="#budget">الميزانية</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#idea">الفكرة</a>
+  <a href="#roadmap">خطة العمل</a>
+  <a href="#compare">مقارنة الأداء</a>
+  <a href="#budget">الميزانية</a>
+  <a href="#guarantees">الضمانات</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow-line"><span>تطبيق للتواصل بلا حواجز</span></div>
+      <h1>لغة الإشارة تتحول لصوت ونص <br><em>في نفس اللحظة</em></h1>
+      <p class="lead">تطبيق موبايل يترجم حركة اليد إلى كلام مسموع ونص مكتوب، ويترجم كلام الطرف الآخر إلى نص فوري — كل ده يحصل جوه الهاتف نفسه، بدون رفع أي فيديو لأي سيرفر.</p>
+      <div class="hero-actions">
+        <a href="#roadmap" class="btn-primary">شوف خطة التنفيذ كاملة</a>
+        <a href="#compare" class="btn-ghost">ليه on-device أفضل؟</a>
+      </div>
+    </div>
+
+    <div class="hero-art">
+      <div class="art-card">
+        <svg viewBox="0 0 360 340" width="100%" height="auto">
+          <circle cx="180" cy="170" r="130" fill="none" stroke="rgba(174,190,206,0.18)" stroke-width="1"/>
+          <circle cx="180" cy="170" r="95" fill="none" stroke="rgba(184,150,93,0.28)" stroke-width="1"/>
+          <!-- stylised hand / sign -->
+          <g transform="translate(120,90)">
+            <path d="M40 130 C30 90 34 60 40 40 C42 30 52 28 54 38 L56 78" stroke="#AEBECE" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M56 78 L58 34 C58 24 68 22 70 32 L72 80" stroke="#AEBECE" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M72 80 L74 28 C74 18 84 16 86 26 L88 82" stroke="#AEBECE" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M88 82 L90 38 C90 29 99 27 101 36 L102 90" stroke="#AEBECE" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M40 130 C36 150 46 168 68 172 L96 172 C114 172 122 156 120 138 L112 96" stroke="#AEBECE" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="118" r="3" fill="#4CD674"/>
+            <circle cx="56" cy="34" r="3" fill="#4CD674"/>
+            <circle cx="86" cy="24" r="3" fill="#4CD674"/>
+          </g>
+          <!-- soundwave -->
+          <g transform="translate(228,150)" stroke="#4CD674" stroke-width="4" stroke-linecap="round">
+            <line x1="0" y1="-6" x2="0" y2="6"/>
+            <line x1="14" y1="-16" x2="14" y2="16"/>
+            <line x1="28" y1="-26" x2="28" y2="26"/>
+            <line x1="42" y1="-14" x2="42" y2="14"/>
+            <line x1="56" y1="-4" x2="56" y2="4"/>
+          </g>
+          <!-- text bubble -->
+          <rect x="60" y="230" width="130" height="46" rx="12" fill="none" stroke="#B8965D" stroke-width="1.4"/>
+          <line x1="76" y1="246" x2="150" y2="246" stroke="#B8965D" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+          <line x1="76" y1="258" x2="130" y2="258" stroke="#B8965D" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEA -->
+<section id="idea" class="idea">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>الفكرة</span></div>
+      <h2>مش مجرد تطبيق ترجمة، ده تواصل حقيقي بين شخصين على نفس الهاتف</h2>
+      <p>الجلسة كلها بتحصل على جهاز واحد — غالبًا موبايل الشخص ذوي الإعاقة السمعية — وده اللي مهم جدا للتصميم والتقنية علشان يكون مناسب له.</p>
+    </div>
+
+    <div class="idea-grid">
+      <div class="idea-card">
+        <span class="num">المهمة الأولى</span>
+        <h3>من إشارة إلى صوت ونص</h3>
+        <p>الكاميرا بتلقط حركة اليد، والموديل بيحللها لحظيًا ويحوّلها لصوت يسمعه الطرف التاني، مع نص ظاهر في نفس الوقت للشخص ذوي الإعاقة عشان يتأكد إن الترجمة مظبوطة قبل ما توصل.</p>
+      </div>
+      <div class="idea-card">
+        <span class="num">المهمة الثانية</span>
+        <h3>من صوت إلى نص</h3>
+        <p>كلام الطرف اللي مش بيعرف لغة الإشارة بيتحول فورًا لنص واضح يقدر الشخص ذوي الإعاقة يقراه، عشان الحوار يمشي في الاتجاهين من غير عوايق.</p>
+      </div>
+    </div>
+
+    <div class="idea-facts">
+      <div class="idea-fact"><strong>جلسة واحدة</strong><span>على هاتف واحد، وجهًا لوجه</span></div>
+      <div class="idea-fact"><strong>12–15 سنة</strong><span>الفئة العمرية الأساسية المستهدفة</span></div>
+      <div class="idea-fact"><strong>On-device</strong><span>لا تسجيل فيديو ولا رفع لأي سيرفر</span></div>
+      <div class="idea-fact"><strong>يعمل أوفلاين</strong><span>الموديل شغال محليًا حتى بدون إنترنت</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section id="workflow">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>آلية العمل</span></div>
+      <h2>رحلة الإشارة من الكاميرا للحظة الفهم</h2>
+      <p>خطوتين بسيطتين، لكن كل التعقيد التقني مخبّى جوه الخطوة التانية — وده اللي هنشرحه بعد شوية.</p>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-label">إشارة ← صوت ونص</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h8l2 2h2a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.6"/><circle cx="13" cy="13" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
+          <span>الكاميرا تلتقط الحركة</span>
+        </div>
+        <span class="flow-arrow">←</span>
+        <div class="flow-step">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>الموديل المحلي يحلل النقاط</span>
+        </div>
+        <span class="flow-arrow">←</span>
+        <div class="flow-step">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H3v6h3l5 4V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 8.5c1 1 1 6 0 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>صوت + نص للتأكيد</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow-note">المعالجة كلها داخل ذاكرة الجهاز (RAM) لحظيًا — بدون حفظ أو رفع أي لقطة.</div>
+
+    <div class="flow-row" style="margin-top:36px;">
+      <div class="flow-label">صوت ← نص</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M6 11a6 6 0 0012 0M12 17v4M9 21h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>الميكروفون يلتقط الكلام</span>
+        </div>
+        <span class="flow-arrow">←</span>
+        <div class="flow-step">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>تحويل فوري لنص مقروء</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH SIMPLE -->
+<section id="tech" class="tech-simple">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>التحدي التقني</span></div>
+      <h2>قبل ما ندخل في التفاصيل، تعالى نفهم مع بعض الصعوبة الحقيقية</h2>
+      <p>مش مجرد ربط كاميرا بشاشة. المشروع محتاج ثلاث طبقات تقنية تشتغل مع بعض في جزء من الثانية، وكل طبقة ليها تحدي مختلف تمامًا.</p>
+    </div>
+
+    <div class="tech-simple-grid">
+      <div class="tech-simple-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <h4>واجهة تفهم اللي بيحصل</h4>
+        <p>التطبيق (Flutter) لازم يشتغل بنفس السلاسة على أندرويد وآيفون، ويكون بسيط لدرجة إن طفل عمره 12 سنة يستخدمه من غير أي شرح.</p>
+      </div>
+      <div class="tech-simple-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <h4>ذكاء اصطناعي يتخيّل داخل الهاتف</h4>
+        <p>موديل تتبع الحركة (MediaPipe) وموديل تصنيف مبني بـ TensorFlow ومضغوط لـ TFLite، عشان يشتغل جوه الهاتف نفسه من غير ما يستهلك بطاريته أو يتأخر ثانية واحدة.</p>
+      </div>
+      <div class="tech-simple-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21c4-3.5 7-7 7-11a7 7 0 10-14 0c0 4 3 7.5 7 11z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <h4>تحديث حي للمعرفة اللغوية</h4>
+        <p>مكتبة الإشارات هتكبر مع الوقت، فالموديل لازم يتحدّث عن بعد (OTA) من غير ما تعيد رفع التطبيق للمتجر في كل مرة.</p>
+      </div>
+    </div>
+
+    <div class="difficulty-note">
+      <p>الصعوبة الحقيقية مش في تشغيل موديل ذكاء اصطناعي — الصعوبة إنه يشتغل <strong style="color:#fff">داخل الهاتف نفسه</strong>، بدون سيرفر، بدون تأخير، وبدون ما يستهلك بطارية أو باقة إنترنت الطفل. وده بالظبط اللي هنبنيه.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>خطة العمل</span></div>
+      <h2>إزاي هنطور المشروع، خطوة بخطوة</h2>
+      <p>كل مرحلة ليها مسؤول واضح، ومتوسط ساعات محسوب على أساس تجربة حقيقية في مشاريع مشابهة — مش تخمين.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>المرحلة</th><th>تفاصيل المهام والمسؤولية</th><th>متوسط الساعات</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="step-name">1. تجربة الواجهات (UI/UX)</td><td>تصميم واجهات تفاعلية تناسب الفئة العمرية (12–15 سنة) والجلسة الموحدة على هاتف واحد.</td><td class="hours">25 – 30 ساعة</td></tr>
+          <tr><td class="step-name">2. الكاميرا والمعالجة اللحظية</td><td>إعداد الكاميرا وسحب الـ Frames وربطها بـ MediaPipe لتتبع النقاط على الـ RAM.</td><td class="hours">35 – 40 ساعة</td></tr>
+          <tr><td class="step-name">3. تجهيز وتنظيف البيانات</td><td>معالجة داتا Google Forms، تنظيف الصور، جمع الفيديوهات المكمّلة للحركات الكاملة والـ Augmentation.</td><td class="hours">35 – 40 ساعة</td></tr>
+          <tr><td class="step-name">4. بناء وتدريب الموديل (AI)</td><td>تصميم المعمارية الزمنية (Temporal Model)، التدريب على الإشارات المختلفة والـ Fine-Tuning.</td><td class="hours">50 – 60 ساعة</td></tr>
+          <tr><td class="step-name">5. ضغط وتحسين الموديل</td><td>تحويل الموديل إلى TFLite وتصغير حجمه للعمل محليًا بـ On-device Profiling ممتاز.</td><td class="hours">30 – 35 ساعة</td></tr>
+          <tr><td class="step-name">6. أنظمة الصوت والنص</td><td>دمج محركات تحويل الصوت إلى نص (STT) والنص إلى صوت (TTS) وتأكيد النصوص.</td><td class="hours">20 – 25 ساعة</td></tr>
+          <tr><td class="step-name">7. البنية التحتية والتحديث الهوائي</td><td>ربط Firebase وإعداد ميزة التحديث الهوائي للموديل (OTA) دون تحديث التطبيق.</td><td class="hours">25 – 30 ساعة</td></tr>
+          <tr><td class="step-name">8. الاختبار والتحسين النهائي</td><td>فحوصات شاملة (Profiling)، إصلاح الـ Bugs، وضمان الاستقرار قبل النشر.</td><td class="hours">30 – 40 ساعة</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>إجمالي ساعات التطوير</td><td>عمل متكامل ومكثف يغطيه مهندسان متخصصان</td><td class="hours">250 – 300 ساعة</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare" class="compare" style="background:var(--deep-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>ليه on-device مش cloud</span></div>
+      <h2>الفرق مش شكلي، الفرق في تجربة الاستخدام اليومية</h2>
+      <p>لو الفيديو رايح لسيرفر بعيد، الطفل هيحس بالتأخير كل ثانية، وباقة الإنترنت هتخلص بسرعة. إحنا بنينا المشروع عشان المشكلة دي متحصلش من الأساس.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>وجه المقارنة</th><th>التطوير التقليدي (Cloud AI)</th><th>نهجنا (On-Device AI)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="step-name">زمن الاستجابة</td><td class="cloud">تأخير ملحوظ (+30 ثانية) بسبب رفع الفيديو للسيرفر والانتظار</td><td class="ondevice">لحظي ومباشر — المعالجة تتم فورًا داخل الـ RAM</td></tr>
+          <tr><td class="step-name">استهلاك باقة الموبايل</td><td class="cloud">تنفد خلال دقائق بسبب الرفع المستمر للفيديو عالي الجودة</td><td class="ondevice">صفر استهلاك — الفيديو لا يغادر الجهاز إطلاقًا</td></tr>
+          <tr><td class="step-name">التكلفة التشغيلية</td><td class="cloud">فواتير شهرية تتراوح بين 500 – 1500 دولار لسيرفرات المعالجة</td><td class="ondevice">تكلفة تشغيلية 0 دولار شهريًا لمعالجة الفيديو</td></tr>
+          <tr><td class="step-name">الخصوصية والأمان</td><td class="cloud">خطورة أمنية من رفع فيديوهات وصور المستخدمين للسيرفر</td><td class="ondevice">لا تخرج أي صورة أو فيديو من هاتف المستخدم إطلاقًا</td></tr>
+          <tr><td class="step-name">العمل بدون إنترنت</td><td class="cloud">يتوقف التطبيق تمامًا عند انقطاع الشبكة</td><td class="ondevice">يعمل بكفاءة كاملة حتى بدون إنترنت</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- MOCKUP -->
+<section id="mockup">
+  <div class="wrap mockup-wrap">
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="cam-area">
+          <div class="hand-dot" style="top:38%; right:44%;"></div>
+          <div class="hand-dot" style="top:30%; right:38%;"></div>
+          <div class="hand-dot" style="top:48%; right:36%;"></div>
+          <div class="hand-dot" style="top:60%; right:46%;"></div>
+          <span class="cam-tag">تتبع مباشر بالكاميرا</span>
+        </div>
+        <div class="msg-box">
+          <div class="who">النص المترجم للإشارة — تحقق ذوي الهمم</div>
+          <p>"السلام عليكم، كيف أذهب إلى الصف؟"</p>
+          <span class="mini-btn green">🔊 تشغيل الصوت للمستمع</span>
+        </div>
+        <div class="msg-box">
+          <div class="who">رد الطرف الآخر — صوت إلى نص</div>
+          <p>"الصف موجود بالطابق الثاني، قاعة X"</p>
+          <span class="mini-btn gray">🎤 استماع لحديث الطرف الآخر</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-copy">
+      <div class="section-head" style="margin-bottom:36px;">
+        <div class="tag"><div class="dash"></div><span>واجهة الاستخدام</span></div>
+        <h2>شاشة واحدة، حوار كامل في الاتجاهين</h2>
+        <p>تصميم مقصود يكون بسيط بصريًا، عشان التركيز يفضل على الترجمة نفسها مش على الأزرار.</p>
+      </div>
+      <div class="list-item"><div class="dot"></div><p><strong>منطقة الكاميرا الحية</strong>بتتبع نقاط اليد لحظيًا وتظهر إن التطبيق شغال وفاهم الحركة.</p></div>
+      <div class="list-item"><div class="dot"></div><p><strong>مربع التحقق من الإشارة</strong>نص واضح للشخص ذوي الإعاقة عشان يتأكد إن المعنى وصل صح قبل تشغيل الصوت.</p></div>
+      <div class="list-item"><div class="dot"></div><p><strong>مربع رد الطرف الآخر</strong>كل كلمة بتتقال بتتحول لنص فورًا، عشان الحوار يفضل مستمر من غير قطع.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BUDGET -->
+<section id="budget">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>الاستثمار</span></div>
+      <h2>ميزانية العمل الهندسي كامل</h2>
+    </div>
+
+    <div class="budget-band">
+      <div>
+        <div class="price-figure">7,500<span>دولار</span></div>
+        <p class="team-note">يغطي المبلغ عمل المطورين المتخصصين في الـ Cross-Platform والـ Edge AI من أول يوم تصميم لحد التسليم الكامل، لضمان جودة تسليم عالية المعايير.</p>
+      </div>
+      <div class="budget-side">
+        <div class="row"><span>نطاق الساعات المقاس</span><span>250 – 300 ساعة</span></div>
+        <div class="row"><span>مصاريف فترة التطوير</span><span>على المطورين بالكامل</span></div>
+        <div class="row"><span>بداية تحمّل العميل للفواتير</span><span>من أول نشر رسمي</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAYMENT PLAN -->
+<section id="payment" style="background:var(--deep-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>خطة الدفع</span></div>
+      <h2>تدفع مقابل تقدّم حقيقي تشوفه بعينك، مش مقابل وعود</h2>
+      <p>الاستثمار مقسّم على 4 مراحل مرتبطة كل واحدة منها بمخرج ملموس تقدر تراجعه بنفسك.</p>
+    </div>
+
+    <div class="plan-flow">
+      <div class="plan-item">
+        <div class="plan-pct">40%</div>
+        <div><strong>مرحلة التأسيس والتصميم</strong><p>15% فور التوقيع وبدء إعداد بيئة العمل، و25% بعد تسليم كل تصاميم الواجهات واعتمادك لها بالكامل.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-pct">30%</div>
+        <div><strong>مرحلة النسخة الأولى</strong><p>تُدفع بعد تسليم أول نسخة عمل فعلية (First Working Build) تشمل ربط الكاميرا بـ MediaPipe والتعرف الأول على الإشارات.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-pct">20%</div>
+        <div><strong>مرحلة اكتمال الأعمال</strong><p>تُدفع عند اكتمال التطبيق 100%: دمج STT/TTS، ميزة OTA، Firebase، وإنهاء كل الفحوصات البرمجية.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-pct">10%</div>
+        <div><strong>مرحلة الإطلاق والضمان</strong><p>تُدفع بعد 14 يومًا من الإطلاق الرسمي، وتغطي هذه الفترة إصلاح أي ملاحظات مجانًا.</p></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>المرحلة</th><th>نسبة الدفعة</th><th>مخرجات الدفعة وشروط الاستحقاق</th></tr></thead>
+        <tbody>
+          <tr><td class="step-name">1. التأسيس والتصميم</td><td class="hours">40%</td><td>15% فور توقيع التعاقد والبدء الرسمي، و25% بعد اعتماد تصاميم الواجهات بالكامل.</td></tr>
+          <tr><td class="step-name">2. النسخة الأولى والتكامل</td><td class="hours">30%</td><td>بعد تسليم أول نسخة عمل من التطبيق تشمل ربط الكاميرا بـ MediaPipe والتعرف الأول على الإشارات.</td></tr>
+          <tr><td class="step-name">3. اكتمال كافة الأعمال</td><td class="hours">20%</td><td>عند اكتمال التطبيق بنسبة 100% (دمج STT/TTS، OTA، Firebase، وإنهاء الفحوصات البرمجية).</td></tr>
+          <tr><td class="step-name">4. ضمان ما بعد الإطلاق</td><td class="hours">10%</td><td>بعد 14 يومًا من إطلاق التطبيق رسميًا على المتاجر، تغطي إصلاح أي أخطاء أو ملاحظات مجانًا.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- GUARANTEES -->
+<section id="guarantees" class="guarantees">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="tag"><div class="dash"></div><span>الضمانات والسياسة</span></div>
+      <h2>حقوقك محفوظة دائماً</h2>
+      <p>شفافية كاملة في الملكية والتكاليف.</p>
+    </div>
+
+    <div class="guar-grid">
+      <div class="guar-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 5-3.4 8.4-7 9-3.6-.6-7-4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div><h4>إعفاء كامل من مصاريف فترة التطوير</h4><p>نتحمل نحن كل أدوات وبيئات التطوير أثناء البناء، ولن تدفع أي مصاريف تشغيلية حتى يُنشر التطبيق رسميًا.</p></div>
+      </div>
+      <div class="guar-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><h4>ملكية كاملة 100%</h4><p>حسابات جديدة خاصة بالمشروع فقط — GitHub، Firebase، حسابات النشر — وتُسلَّم لك بياناتها بالكامل.</p></div>
+      </div>
+      <div class="guar-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M18 3v4h-4M6 21v-4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><h4>تحديثات بدون مصاريف إضافية</h4><p>بفضل ميزة OTA، تقدر تضيف إشارات جديدة للموديل مستقبلًا من غير إعادة دفع تكاليف رفع نسخة جديدة للمتاجر.</p></div>
+      </div>
+      <div class="guar-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <div><h4>ضمان 14 يومًا بعد الإطلاق</h4><p>نتابع أداء التطبيق بعد النشر ونصلّح أي مشاكل تقنية أو Bugs فورًا وبدون أي تكلفة إضافية.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="contact" class="dotted">
+  <div class="wrap">
+    <div class="final-cta">
+      <h2>جاهزين نبني التطبيق ده؟</h2>
+      <p>نحن على أتم الاستعداد لتحويل هذه الرؤية إلى واقع ملموس. نمتلك الخبرة والأدوات اللازمة لبدء العمل فوراً وتطوير تطبيق يلبي تطلعاتك.
+      يسعدنا دائماً الإجابة على أي استفسار لديكم قبل الانطلاق.
+      </p>
+      <div class="hero-actions">
+        <a href="https://wa.me/qr/XPAGLCAEKJ3WG1" class="btn-primary">تواصل معنا</a>
+        <a href="#roadmap" class="btn-ghost">راجع خطة العمل تاني</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <span>© 2026 جميع الحقوق محفوظة</span>
+    <span>سَــوا</span>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  let ticking = false;
+  const syncNavbar = () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 24);
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(syncNavbar); }
+  }, { passive:true });
+  syncNavbar();
+
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  navToggle.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+</script>
+
+</body>
+</html>
